@@ -65,7 +65,9 @@ export default class ReactAce extends PureComponent {
       this.editor[editorProps[i]] = this.props.editorProps[editorProps[i]];
     }
 
-    this.editor.getSession().setMode(`ace/mode/${mode}`);
+    if(mode != ''){
+      this.editor.getSession().setMode(`ace/mode/${mode}`);
+    }
     this.editor.setTheme(`ace/theme/${theme}`);
     this.editor.setFontSize(fontSize);
     this.editor.setValue(defaultValue === undefined ? value : defaultValue, cursorStart);
