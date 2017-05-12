@@ -72,6 +72,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _react2 = _interopRequireDefault(_react);
 
+	var _propTypes = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"prop-types\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+
+	var _propTypes2 = _interopRequireDefault(_propTypes);
+
 	var _lodash = __webpack_require__(2);
 
 	var _lodash2 = _interopRequireDefault(_lodash);
@@ -89,15 +93,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var editorOptions = ['minLines', 'maxLines', 'readOnly', 'highlightActiveLine', 'tabSize', 'enableBasicAutocompletion', 'enableLiveAutocompletion', 'enableSnippets'];
 
-	var ReactAce = function (_PureComponent) {
-	  _inherits(ReactAce, _PureComponent);
+	var ReactAce = function (_Component) {
+	  _inherits(ReactAce, _Component);
 
 	  function ReactAce(props) {
 	    _classCallCheck(this, ReactAce);
 
 	    var _this = _possibleConstructorReturn(this, (ReactAce.__proto__ || Object.getPrototypeOf(ReactAce)).call(this, props));
 
-	    ['onChange', 'onFocus', 'onBlur', 'onCopy', 'onPaste', 'onScroll', 'handleOptions'].forEach(function (method) {
+	    ['onChange', 'onFocus', 'onBlur', 'onCopy', 'onPaste', 'onScroll', 'handleOptions', 'updateRef'].forEach(function (method) {
 	      _this[method] = _this[method].bind(_this);
 	    });
 	    return _this;
@@ -122,6 +126,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          showGutter = _props.showGutter,
 	          wrapEnabled = _props.wrapEnabled,
 	          showPrintMargin = _props.showPrintMargin,
+	          _props$scrollMargin = _props.scrollMargin,
+	          scrollMargin = _props$scrollMargin === undefined ? [0, 0, 0, 0] : _props$scrollMargin,
 	          keyboardHandler = _props.keyboardHandler,
 	          onLoad = _props.onLoad,
 	          commands = _props.commands,
@@ -129,7 +135,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          markers = _props.markers;
 
 
-	      this.editor = _brace2.default.edit(this.refs.editor);
+	      this.editor = _brace2.default.edit(this.refEditor);
 
 	      if (onBeforeLoad) {
 	        onBeforeLoad(_brace2.default);
@@ -140,6 +146,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.editor[editorProps[i]] = this.props.editorProps[editorProps[i]];
 	      }
 
+	      this.editor.renderer.setScrollMargin(scrollMargin[0], scrollMargin[1], scrollMargin[2], scrollMargin[3]);
 	      if (mode != '') {
 	        this.editor.getSession().setMode('ace/mode/' + mode);
 	      }
@@ -179,7 +186,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 
 	      if (className) {
-	        this.refs.editor.className += ' ' + className;
+	        this.refEditor.className += ' ' + className;
 	      }
 
 	      if (focus) {
@@ -206,14 +213,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      if (nextProps.className !== oldProps.className) {
 	        (function () {
-	          var appliedClasses = _this3.refs.editor.className;
+	          var appliedClasses = _this3.refEditor.className;
 	          var appliedClassesArray = appliedClasses.trim().split(' ');
 	          var oldClassesArray = oldProps.className.trim().split(' ');
 	          oldClassesArray.forEach(function (oldClass) {
 	            var index = appliedClassesArray.indexOf(oldClass);
 	            appliedClassesArray.splice(index, 1);
 	          });
-	          _this3.refs.editor.className = ' ' + nextProps.className + ' ' + appliedClassesArray.join(' ');
+	          _this3.refEditor.className = ' ' + nextProps.className + ' ' + appliedClassesArray.join(' ');
 	        })();
 	      }
 
@@ -251,6 +258,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!(0, _lodash2.default)(nextProps.markers, oldProps.markers)) {
 	        this.handleMarkers(nextProps.markers || []);
 	      }
+	      if (!(0, _lodash2.default)(nextProps.scrollMargins, oldProps.scrollMargins)) {
+	        this.handleScrollMargins(nextProps.scrollMargins);
+	      }
 	      if (this.editor && this.editor.getValue() !== nextProps.value) {
 	        // editor.setValue is a synchronous function call, change event is emitted before setValue return.
 	        this.silent = true;
@@ -266,6 +276,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (nextProps.height !== this.props.height) {
 	        this.editor.resize();
 	      }
+	    }
+	  }, {
+	    key: 'handleScrollMargins',
+	    value: function handleScrollMargins() {
+	      var margins = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [0, 0, 0, 0];
+
+	      this.editor.renderer.setScrollMargins(margins[0], margins[1], margins[2], margins[3]);
 	    }
 	  }, {
 	    key: 'componentWillUnmount',
@@ -359,6 +376,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
+	    key: 'updateRef',
+	    value: function updateRef(item) {
+	      this.refEditor = item;
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
 	      var _props2 = this.props,
@@ -368,7 +390,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          style = _props2.style;
 
 	      var divStyle = _extends({ width: width, height: height }, style);
-	      return _react2.default.createElement('div', { ref: 'editor',
+	      return _react2.default.createElement('div', { ref: this.updateRef,
 	        id: name,
 	        style: divStyle
 	      });
@@ -376,47 +398,47 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 
 	  return ReactAce;
-	}(_react.PureComponent);
+	}(_react.Component);
 
 	exports.default = ReactAce;
 
 
 	ReactAce.propTypes = {
-	  mode: _react.PropTypes.string,
-	  focus: _react.PropTypes.bool,
-	  theme: _react.PropTypes.string,
-	  name: _react.PropTypes.string,
-	  className: _react.PropTypes.string,
-	  height: _react.PropTypes.string,
-	  width: _react.PropTypes.string,
-	  fontSize: _react.PropTypes.oneOfType([_react.PropTypes.number, _react.PropTypes.string]),
-	  showGutter: _react.PropTypes.bool,
-	  onChange: _react.PropTypes.func,
-	  onCopy: _react.PropTypes.func,
-	  onPaste: _react.PropTypes.func,
-	  onFocus: _react.PropTypes.func,
-	  onBlur: _react.PropTypes.func,
-	  onScroll: _react.PropTypes.func,
-	  value: _react.PropTypes.string,
-	  defaultValue: _react.PropTypes.string,
-	  onLoad: _react.PropTypes.func,
-	  onBeforeLoad: _react.PropTypes.func,
-	  minLines: _react.PropTypes.number,
-	  maxLines: _react.PropTypes.number,
-	  readOnly: _react.PropTypes.bool,
-	  highlightActiveLine: _react.PropTypes.bool,
-	  tabSize: _react.PropTypes.number,
-	  showPrintMargin: _react.PropTypes.bool,
-	  cursorStart: _react.PropTypes.number,
-	  editorProps: _react.PropTypes.object,
-	  setOptions: _react.PropTypes.object,
-	  annotations: _react.PropTypes.array,
-	  markers: _react.PropTypes.array,
-	  keyboardHandler: _react.PropTypes.string,
-	  wrapEnabled: _react.PropTypes.bool,
-	  enableBasicAutocompletion: _react.PropTypes.oneOfType([_react.PropTypes.bool, _react.PropTypes.array]),
-	  enableLiveAutocompletion: _react.PropTypes.oneOfType([_react.PropTypes.bool, _react.PropTypes.array]),
-	  commands: _react.PropTypes.array
+	  mode: _propTypes2.default.string,
+	  focus: _propTypes2.default.bool,
+	  theme: _propTypes2.default.string,
+	  name: _propTypes2.default.string,
+	  className: _propTypes2.default.string,
+	  height: _propTypes2.default.string,
+	  width: _propTypes2.default.string,
+	  fontSize: _propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.string]),
+	  showGutter: _propTypes2.default.bool,
+	  onChange: _propTypes2.default.func,
+	  onCopy: _propTypes2.default.func,
+	  onPaste: _propTypes2.default.func,
+	  onFocus: _propTypes2.default.func,
+	  onBlur: _propTypes2.default.func,
+	  onScroll: _propTypes2.default.func,
+	  value: _propTypes2.default.string,
+	  defaultValue: _propTypes2.default.string,
+	  onLoad: _propTypes2.default.func,
+	  onBeforeLoad: _propTypes2.default.func,
+	  minLines: _propTypes2.default.number,
+	  maxLines: _propTypes2.default.number,
+	  readOnly: _propTypes2.default.bool,
+	  highlightActiveLine: _propTypes2.default.bool,
+	  tabSize: _propTypes2.default.number,
+	  showPrintMargin: _propTypes2.default.bool,
+	  cursorStart: _propTypes2.default.number,
+	  editorProps: _propTypes2.default.object,
+	  setOptions: _propTypes2.default.object,
+	  annotations: _propTypes2.default.array,
+	  markers: _propTypes2.default.array,
+	  keyboardHandler: _propTypes2.default.string,
+	  wrapEnabled: _propTypes2.default.bool,
+	  enableBasicAutocompletion: _propTypes2.default.oneOfType([_propTypes2.default.bool, _propTypes2.default.array]),
+	  enableLiveAutocompletion: _propTypes2.default.oneOfType([_propTypes2.default.bool, _propTypes2.default.array]),
+	  commands: _propTypes2.default.array
 	};
 
 	ReactAce.defaultProps = {
