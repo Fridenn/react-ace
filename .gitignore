@@ -18,7 +18,7 @@ coverage
 .grunt
 
 # Compiled binary addons (http://nodejs.org/api/addons.html)
-build
+#build
 
 # Dependency directory
 # Commenting this out is preferred by some people, see
@@ -32,7 +32,7 @@ node_modules
 .idea
 
 # Babel Build
-lib
+#lib
 
 # UMD Build
-dist
+#dist

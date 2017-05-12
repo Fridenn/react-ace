@@ -1,5 +1,6 @@
 import ace from 'brace';
-import React, { PureComponent, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types'
 import isEqual from 'lodash.isequal';
 
 const { Range } = ace.acequire('ace/range');
@@ -15,7 +16,7 @@ const editorOptions = [
   'enableSnippets',
 ];
 
-export default class ReactAce extends PureComponent {
+export default class ReactAce extends Component {
   constructor(props) {
     super(props);
     [
@@ -26,6 +27,7 @@ export default class ReactAce extends PureComponent {
       'onPaste',
       'onScroll',
       'handleOptions',
+      'updateRef',
     ]
     .forEach(method => {
       this[method] = this[method].bind(this);
@@ -47,6 +49,7 @@ export default class ReactAce extends PureComponent {
       showGutter,
       wrapEnabled,
       showPrintMargin,
+      scrollMargin = [ 0, 0, 0, 0],
       keyboardHandler,
       onLoad,
       commands,
@@ -54,7 +57,7 @@ export default class ReactAce extends PureComponent {
       markers,
     } = this.props;
 
-    this.editor = ace.edit(this.refs.editor);
+    this.editor = ace.edit(this.refEditor);
 
     if (onBeforeLoad) {
       onBeforeLoad(ace);
@@ -65,6 +68,7 @@ export default class ReactAce extends PureComponent {
       this.editor[editorProps[i]] = this.props.editorProps[editorProps[i]];
     }
 
+    this.editor.renderer.setScrollMargin(scrollMargin[0], scrollMargin[1], scrollMargin[2], scrollMargin[3])
     if(mode != ''){
       this.editor.getSession().setMode(`ace/mode/${mode}`);
     }
@@ -104,7 +108,7 @@ export default class ReactAce extends PureComponent {
     }
 
     if (className) {
-      this.refs.editor.className += ' ' + className;
+      this.refEditor.className += ' ' + className;
     }
 
     if (focus) {
@@ -127,14 +131,14 @@ export default class ReactAce extends PureComponent {
     }
 
     if (nextProps.className !== oldProps.className) {
-      let appliedClasses = this.refs.editor.className;
+      let appliedClasses = this.refEditor.className;
       let appliedClassesArray = appliedClasses.trim().split(' ');
       let oldClassesArray = oldProps.className.trim().split(' ');
       oldClassesArray.forEach((oldClass) => {
         let index = appliedClassesArray.indexOf(oldClass);
         appliedClassesArray.splice(index, 1);
       });
-      this.refs.editor.className = ' ' + nextProps.className + ' ' + appliedClassesArray.join(' ');
+      this.refEditor.className = ' ' + nextProps.className + ' ' + appliedClassesArray.join(' ');
     }
 
     if (nextProps.mode !== oldProps.mode) {
@@ -171,6 +175,9 @@ export default class ReactAce extends PureComponent {
     if (!isEqual(nextProps.markers, oldProps.markers)) {
       this.handleMarkers(nextProps.markers || []);
     }
+    if (!isEqual(nextProps.scrollMargins, oldProps.scrollMargins)) {
+      this.handleScrollMargins(nextProps.scrollMargins)
+    }
     if (this.editor && this.editor.getValue() !== nextProps.value) {
       // editor.setValue is a synchronous function call, change event is emitted before setValue return.
       this.silent = true;
@@ -186,6 +193,10 @@ export default class ReactAce extends PureComponent {
     if(nextProps.height !== this.props.height){
       this.editor.resize();
     }
+  }
+
+  handleScrollMargins(margins = [0, 0, 0, 0]) {
+    this.editor.renderer.setScrollMargins(margins[0], margins[1], margins[2], margins[3])
   }
 
   componentWillUnmount() {
@@ -259,11 +270,15 @@ export default class ReactAce extends PureComponent {
     });
   }
 
+  updateRef(item) {
+    this.refEditor = item;
+  }
+
   render() {
     const { name, width, height, style } = this.props;
     const divStyle = { width, height, ...style };
     return (
-      <div ref="editor"
+      <div ref={this.updateRef}
         id={name}
         style={divStyle}
       >
