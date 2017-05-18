@@ -1,7 +1,7 @@
-import ace from 'brace';
-import React, { Component } from 'react';
+import ace from 'brace'
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import isEqual from 'lodash.isequal';
+import isEqual from 'lodash.isequal'
 
 const { Range } = ace.acequire('ace/range');
 
@@ -25,6 +25,7 @@ export default class ReactAce extends Component {
       'onBlur',
       'onCopy',
       'onPaste',
+      'onSelectionChange',
       'onScroll',
       'handleOptions',
       'updateRef',
@@ -36,7 +37,6 @@ export default class ReactAce extends Component {
 
   componentDidMount() {
     const {
-      name,
       className,
       onBeforeLoad,
       mode,
@@ -83,10 +83,13 @@ export default class ReactAce extends Component {
     this.editor.on('copy', this.onCopy);
     this.editor.on('paste', this.onPaste);
     this.editor.on('change', this.onChange);
+    this.editor.getSession().selection.on('changeSelection', this.onSelectionChange);
     this.editor.session.on('changeScrollTop', this.onScroll);
     this.handleOptions(this.props);
     this.editor.getSession().setAnnotations(annotations || []);
-    this.handleMarkers(markers || []);
+    if(markers && markers.length > 0){
+      this.handleMarkers(markers);
+    }
 
     // get a list of possible options to avoid 'misspelled option errors'
     const availableOptions = this.editor.$options;
@@ -172,11 +175,11 @@ export default class ReactAce extends Component {
     if (!isEqual(nextProps.annotations, oldProps.annotations)) {
       this.editor.getSession().setAnnotations(nextProps.annotations || []);
     }
-    if (!isEqual(nextProps.markers, oldProps.markers)) {
-      this.handleMarkers(nextProps.markers || []);
+    if (!isEqual(nextProps.markers, oldProps.markers) && (nextProps.markers && nextProps.markers.length > 0)) {
+      this.handleMarkers(nextProps.markers);
     }
-    if (!isEqual(nextProps.scrollMargins, oldProps.scrollMargins)) {
-      this.handleScrollMargins(nextProps.scrollMargins)
+    if (!isEqual(nextProps.scrollMargin, oldProps.scrollMargin)) {
+      this.handleScrollMargins(nextProps.scrollMargin)
     }
     if (this.editor && this.editor.getValue() !== nextProps.value) {
       // editor.setValue is a synchronous function call, change event is emitted before setValue return.
@@ -204,10 +207,17 @@ export default class ReactAce extends Component {
     this.editor = null;
   }
 
-  onChange() {
+  onChange(event) {
     if (this.props.onChange && !this.silent) {
       const value = this.editor.getValue();
-      this.props.onChange(value);
+      this.props.onChange(value, event);
+    }
+  }
+
+  onSelectionChange(event) {
+    if (this.props.onSelectionChange) {
+      const value = this.editor.getSelection();
+      this.props.onSelectionChange(value, event);
     }
   }
 
@@ -309,6 +319,7 @@ ReactAce.propTypes = {
   value: PropTypes.string,
   defaultValue: PropTypes.string,
   onLoad: PropTypes.func,
+  onSelectionChange: PropTypes.func,
   onBeforeLoad: PropTypes.func,
   minLines: PropTypes.number,
   maxLines: PropTypes.number,
@@ -319,6 +330,8 @@ ReactAce.propTypes = {
   cursorStart: PropTypes.number,
   editorProps: PropTypes.object,
   setOptions: PropTypes.object,
+  style: PropTypes.object,
+  scrollMargin: PropTypes.array,
   annotations: PropTypes.array,
   markers: PropTypes.array,
   keyboardHandler: PropTypes.string,
@@ -356,6 +369,8 @@ ReactAce.defaultProps = {
   tabSize: 4,
   cursorStart: 1,
   editorProps: {},
+  style: {},
+  scrollMargin: [ 0, 0, 0, 0],
   setOptions: {},
   wrapEnabled: false,
   enableBasicAutocompletion: false,

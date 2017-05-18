@@ -1,13 +1,15 @@
 language: node_js
 node_js:
-- '6'
+- '7'
 install:
-- npm install
 - npm install react
 - npm install react-dom
+- npm install
 script:
 - npm run build
+- npm run lint
 - npm test
+- npm run build:example
 deploy:
   - provider: releases
     api_key:
@@ -25,3 +27,10 @@ deploy:
     on:
       tags: true
       repo: securingsincity/react-ace
+  - provider: pages
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN
+    on:
+      branch: master
+      repo: securingsincity/react-ace
+    local_dir: example
